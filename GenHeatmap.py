@@ -2,16 +2,16 @@ import time
 
 import HeatMatrix as network
 import tensorflow as tf
-import SODTester as SDT
-import SODLoader as SDL
-import SOD_Display as SDD
+import SODKit.SODTester as SDT
+import SODKit.SODLoader as SDL
+import SODKit.SOD_Display as SDD
 import matplotlib.pyplot as plt
 from pathlib import Path
 import numpy as np
 import numpy.ma as ma
 
-sdl = SDL.SODLoader(str(Path.home()) + '/PycharmProjects/Datasets/BreastData/Mammo/')
-sdd = SDD.SOD_Display()
+sdl = SDL(str(Path.home()) + '/PycharmProjects/Datasets/BreastData/Mammo/')
+sdd = SDD()
 
 _author_ = 'Simi'
 
@@ -90,7 +90,7 @@ def test():
         config.gpu_options.allow_growth = True
 
         # Init SDT
-        sdt = SDT.SODTester(True, False)
+        sdt = SDT(True, False)
 
         # Run once for all the saved checkpoints
         ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir + FLAGS.RunInfo)

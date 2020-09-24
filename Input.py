@@ -1,3 +1,4 @@
+######DOCKER VERSION#######
 """
 Does our loading and preprocessing of files to a protobuf
 
@@ -26,8 +27,8 @@ RiskStudy:
 
 import numpy as np
 import tensorflow as tf
-import SODLoader as SDL
-import SOD_Display as SDD
+import SODKit.SODLoader as SDL
+import SODKit.SOD_Display as SDD
 from pathlib import Path
 import os
 
@@ -44,8 +45,8 @@ brca_dir = home_dir + 'BRCA/'
 calc_dir = home_dir + 'Calcs/Eduardo/'
 chemo_dir = home_dir + 'Chemoprevention/'
 
-sdl = SDL.SODLoader(data_root=home_dir)
-sdd = SDD.SOD_Display()
+sdl = SDL(data_root=home_dir)
+sdd = SDD()
 
 
 def pre_process_BRCA(box_dims=1024):

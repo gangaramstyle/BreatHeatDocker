@@ -4,8 +4,8 @@ Utilities, like loading our other test sets
 
 import numpy as np
 import tensorflow as tf
-import SODLoader as SDL
-import SOD_Display as SDD
+import SODKit.SODLoader as SDL
+import SODKit.SOD_Display as SDD
 from pathlib import Path
 import os
 import pydicom as dicom
@@ -24,8 +24,8 @@ brca_dir = home_dir + 'BRCA/'
 calc_dir = home_dir + 'Calcs/Eduardo/'
 chemo_dir = home_dir + 'Chemoprevention/'
 
-sdl = SDL.SODLoader(data_root=home_dir)
-sdd = SDD.SOD_Display()
+sdl = SDL.(data_root=home_dir)
+sdd = SDD.()
 
 
 def re_save_1yr(type='CC'):

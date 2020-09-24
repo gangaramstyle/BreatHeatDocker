@@ -1,19 +1,20 @@
+######DOCKER VERSION#######
 import os
 import time
 
 import HeatMatrix as network
 import tensorflow as tf
-import SODTester as SDT
-import SODLoader as SDL
-import SOD_Display as SDD
+import SODKit.SODTester as SDT
+import SODKit.SODLoader as SDL
+import SODKit.SOD_Display as SDD
 import glob
 import matplotlib.pyplot as plt
 from pathlib import Path
 import numpy as np
 import numpy.ma as ma
 
-sdl = SDL.SODLoader(str(Path.home()) + '/PycharmProjects/Datasets/BreastData/Mammo/')
-sdd = SDD.SOD_Display()
+sdl = SDL(str(Path.home()) + '/PycharmProjects/Datasets/BreastData/Mammo/')
+sdd = SDD()
 
 _author_ = 'Simi'
 
@@ -34,7 +35,7 @@ tf.app.flags.DEFINE_integer('batch_size', 254, """Number of images to process in
 # Testing parameters
 tf.app.flags.DEFINE_string('RunInfo', 'Combined2/', """Unique file name for this training run""")
 tf.app.flags.DEFINE_integer('GPU', 0, """Which GPU to use""")
-tf.app.flags.DEFINE_integer('sleep', 120, """ Time to sleep before starting test""")
+tf.app.flags.DEFINE_integer('sleep', 1, """ Time to sleep before starting test""")
 
 # Define some of the immutable variables
 tf.app.flags.DEFINE_string('train_dir', 'training/', """Directory to write event logs and save checkpoint files""")
@@ -126,7 +127,7 @@ def inference():
                 # Initialize some variables
                 step = 0
                 max_steps = int(FLAGS.epoch_size / FLAGS.batch_size)
-                sdt = SDT.SODTester(True, False)
+                sdt = SDT(True, False)
 
                 # Dictionary of arrays merging function
                 def _merge_dicts(dict1={}, dict2={}):

@@ -1,3 +1,4 @@
+######DOCKER VERSION#######
 # Defines and builds our network
 #    Computes input images and labels using inputs() or distorted inputs ()
 #    Computes inference on the models (forward pass) using inference()
@@ -12,7 +13,7 @@ _author_ = 'simi'
 
 import tensorflow as tf
 import Input
-import SODNetwork as SDN
+import SODKit.SODNetwork as SDN
 
 # Define the FLAGS class to hold our immutable global variables
 FLAGS = tf.app.flags.FLAGS
