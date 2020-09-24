@@ -13,36 +13,13 @@ from pathlib import Path
 import numpy as np
 import numpy.ma as ma
 
-sdl = SDL(str(Path.home()) + '/PycharmProjects/Datasets/BreastData/Mammo/')
-sdd = SDD()
 
 _author_ = 'Simi'
 
 # Define the FLAGS class to hold our immutable global variables
 FLAGS = tf.app.flags.FLAGS
 
-# >5k example lesions total
-# tf.app.flags.DEFINE_integer('epoch_size', 371, """Risk 1""")
-# tf.app.flags.DEFINE_integer('epoch_size', 1809, """1kCC - 201""")
-# tf.app.flags.DEFINE_integer('epoch_size', 3699, """1kCCMLO - 137""")
-# tf.app.flags.DEFINE_integer('epoch_size', 3300, """Chemoprevention - 131""")
-# tf.app.flags.DEFINE_integer('batch_size', 330, """Number of images to process in a batch.""")
-# tf.app.flags.DEFINE_integer('epoch_size', 1053, """Chemoprevention - 131""")
-# tf.app.flags.DEFINE_integer('batch_size', 351, """Number of images to process in a batch.""")
-
-#TODO: figure out epoch_size and batch_size intelligently
-tf.app.flags.DEFINE_integer('epoch_size', 2032, """SPH2 - 131""")
-tf.app.flags.DEFINE_integer('batch_size', 254, """Number of images to process in a batch.""")
-
-# Testing parameters
-#TODO: change between the two network types
-tf.app.flags.DEFINE_string('RunInfo', 'Combined2/', """Unique file name for this training run""")
-tf.app.flags.DEFINE_integer('GPU', 0, """Which GPU to use""")
-tf.app.flags.DEFINE_integer('sleep', 1, """ Time to sleep before starting test""")
-
 # Define some of the immutable variables
-tf.app.flags.DEFINE_string('train_dir', 'training/', """Directory to write event logs and save checkpoint files""")
-tf.app.flags.DEFINE_string('data_dir', 'data/test/', """Path to the data directory.""")
 tf.app.flags.DEFINE_integer('num_classes', 2, """ Number of classes""")
 tf.app.flags.DEFINE_integer('box_dims', 1024, """dimensions of the input pictures""")
 tf.app.flags.DEFINE_integer('network_dims', 256, """the dimensions fed into the network""")
@@ -60,47 +37,27 @@ tf.app.flags.DEFINE_float('beta1', 0.9, """ The beta 1 value for the adam optimi
 tf.app.flags.DEFINE_float('beta2', 0.999, """ The beta 1 value for the adam optimizer""")
 
 # convert the pre_process code to be dataset agnostic
-def pre_process_BRCA(box_dims=1024):
+def pre_process(f_dir, output_key):
     """
     Loads the files to a protobuf
     :param box_dims: dimensions of the saved images
     :return:
     """
 
-    # Load the filenames and randomly shuffle them
-    filenames = sdl.retreive_filelist('dcm', True, brca_dir)
-    shuffle(filenames)
+    sdl = SDL(data_root=f_dir)
+    sdd = SDD()
+    box_dims=1024
+
+    # Load the filenames
+    filenames = sdl.retreive_filelist('dcm', True, f_dir)
 
     # Global variables
-    display, counter, data, data_test, index, pt = [], [0, 0], {}, {}, 0, 0
+    record_index, file_index = 0, 0
+    # Failure trackers
+    f_dicom, f_cc, f_laterality, f_mask_generate, f_mask_apply = 0, 0, 0, 0, 0
+    data = {}
 
-    for file in filenames:
-
-        """
-        Retreive patient number, two different if statements because...
-
-        # /BRCA/G3_Neg_NoMutations/3/Serxx.dcm
-        # /BRCA/G3_Neg_MinorMutations/3/Serxx.dcm
-        # /BRCA/G1_PosBRCA/NoCancer/Patient 1/L CC/Ser.dcm
-        # /BRCA/G1_PosBRCA/Cancer/Patient 1/L CC/Ser.dcm
-
-        We want: group = source of positive, brca vs risk 
-        Patient = similar to accession, (can have multiple views) (BRCApos_Cancer_1, BRCAneg_NoMutations_1)
-        View = unique to that view (BRCA_Cancer_1_LCC)
-        Label = 1 if cancer, 0 if not 
-        """
-
-        if 'G1_PosBRCA' in file:
-            patient = 'BRCApos_' + file.split('/')[-4] + '_' + file.split('/')[-3].split(' ')[-1]
-            view = patient + '_' + file.split('/')[-2].replace(' ', '')
-            if 'NoCancer' in file:
-                cancer = 0
-            else:
-                cancer = 1
-        else:
-            patient = 'BRCAneg_' + file.split('/')[-3].split('_')[-1] + '_' + file.split('/')[-2]
-            view = patient + '_' + file.split('/')[-1].split('.')[0][-1]
-            cancer = 0
+    for file_index, file in enumerate(filenames):
 
         # Load the Dicom
         try:
@@ -109,12 +66,28 @@ def pre_process_BRCA(box_dims=1024):
             if photo == 1: image *= -1
         except Exception as e:
             print('Unable to Load DICOM file: %s - %s' % (e, file))
+            f_dicom += 1
             continue
 
         try:
             if 'CC' not in str(header['tags'].ViewPosition): continue
         except:
+            f_cc += 1
             continue
+
+        laterality = ''
+        try:
+            laterality = header['tags'].ImageLaterality
+        except:
+            try:
+                laterality = header['tags'].Laterality
+            except:
+                f_laterality += 1
+                print(header)
+                input('...')
+                continue
+
+        view = laterality + '_' + header['tags'].ViewPosition
 
         """
                 We have two methods to generate breast masks, they fail on different examples. 
@@ -127,17 +100,21 @@ def pre_process_BRCA(box_dims=1024):
         mask_idx = np.sum(mask) / (image.shape[0] * image.shape[1])
         if mask_idx > 0.8 or mask_idx < 0.1:
             print('Failed to generate mask... ', view)
+            f_mask_generate += 1
             continue
 
         # Multiply image by mask to make background 0
         try:
+            mask = mask.astype(image.dtype)
             image *= mask
         except:
+            f_mask_apply += 1
             print('Failed to apply mask... ', view, image.shape, image.dtype, mask.shape, mask.dtype)
+            continue
 
         # Resize and generate label mask. 0=background, 1=no cancer, 2 = cancer
         image = sdl.zoom_2D(image, [box_dims, box_dims])
-        labels = sdl.zoom_2D(mask.astype(np.int16), [box_dims, box_dims]).astype(np.uint8) * (cancer + 1)
+        labels = sdl.zoom_2D(mask.astype(np.int16), [box_dims, box_dims]).astype(np.uint8)
 
         # Normalize the mammograms using contrast localized adaptive histogram normalization
         image = sdl.adaptive_normalization(image).astype(np.float32)
@@ -145,33 +122,29 @@ def pre_process_BRCA(box_dims=1024):
         # Zero the background again.
         image *= sdl.zoom_2D(mask.astype(np.int16), [box_dims, box_dims])
 
-        # Risk = grp 1
-        group = 0
-
         # Save the data
-        data[index] = {'data': image.astype(np.float16), 'label_data': labels, 'file': file, 'shapex': shape[0], 'shapy': shape[1],
-                       'group': group, 'patient': patient, 'view': view, 'cancer': cancer, 'accno': accno}
+        data[record_index] = {'data': image.astype(np.float16), 'label_data': labels, 'file': file, 'shapex': shape[0], 'shapy': shape[1],
+                       'view': view, 'accno': accno}
 
         # Increment counters
-        index += 1
-        counter[cancer] += 1
-        pt += 1
+        record_index += 1
         del image, mask, labels
 
     # Done with all patients
-    print('Made %s BRCA boxes from %s patients' % (index, pt,), counter)
+    #print('Made %s BRCA boxes from %s patients' % (index, pt,), counter)
 
     # Save the data.
     sdl.save_dict_filetypes(data[0])
-    sdl.save_tfrecords(data, 1, file_root='data/BRCA_CC')
+    sdl.save_tfrecords(data, 1, file_root=f"data/{output_key}/{output_key}")
+    return(record_index)
 
 # Define a custom training class
-def inference():
+def inference(output_key):
+    sdd = SDD()
 
 
     # Makes this the default graph where all ops will be added
     with tf.Graph().as_default(), tf.device('/cpu:0'):
-    with tf.Graph().as_default(), tf.device('/gpu:' + str(FLAGS.GPU)):
 
         # Define phase of training
         phase_train = tf.placeholder(tf.bool)
@@ -246,7 +219,6 @@ def inference():
 
                         # Load some metrics for testing
                         _softmax_map_, _data_ = mon_sess.run([softmax_map, data], feed_dict={phase_train: False})
-
                         # Combine cases
                         del _data_['data']
                         if step == 0:
@@ -279,7 +251,6 @@ def inference():
                         # Generate the dictionary
                         save_data[z] = {
                             'Accno': _data['accno'][z].decode('utf-8'),
-                            'Cancer Label': int(_data['cancer'][z]),
                             'Image_Info': _data['view'][z].decode('utf-8'),
                             'Cancer Score': ma.masked_array(heatmap_high[z].flatten(), mask=~mask[z].flatten()).mean(),
                             'Benign Score': ma.masked_array(heatmap_low[z].flatten(), mask=~mask[z].flatten()).mean(),
@@ -290,16 +261,7 @@ def inference():
                             'Variance': ma.masked_array(heatmap_high[z].flatten(), mask=~mask[z].flatten()).var(),
                         }
 
-                        # Append the scores
-                        if save_data[z]['Cancer Label'] == 1:
-                            high_scores.append(save_data[z]['Cancer Score'])
-                        else:
-                            low_scores.append(save_data[z]['Cancer Score'])
-                        if save_data[z]['Cancer Label'] == 1:
-                            high_std.append(save_data[z]['Standard Deviation'])
-                        else:
-                            low_std.append(save_data[z]['Standard Deviation'])
-
+                        
                         """ 
                         Make some corner pixels max and min for display purposes
                         Good Display Runs: Unet_Fixed2 epoch 60, and Initial_Dice epoch 149
@@ -322,12 +284,13 @@ def inference():
                         display.append(image)
 
                     # Save the data array
-                    High, Low = float(np.mean(np.asarray(high_scores))), float(np.mean(np.asarray(low_scores)))
-                    hstd, lstd = float(np.mean(np.asarray(high_std))), float(np.mean(np.asarray(low_std)))
-                    diff = High - Low
-                    print('Epoch: %s, Diff: %.3f, AVG High: %.3f (%.3f), AVG Low: %.3f (%.3f)' % (
-                        Epoch, diff, High, hstd, Low, lstd))
-                    sdt.save_dic_csv(save_data, 'SPH2_%s.csv' % FLAGS.RunInfo.replace('/', ''), index_name='ID')
+                    #High, Low = float(np.mean(np.asarray(high_scores))), float(np.mean(np.asarray(low_scores)))
+                    #hstd, lstd = float(np.mean(np.asarray(high_std))), float(np.mean(np.asarray(low_std)))
+                    #diff = High - Low
+                    #print('Epoch: %s, Diff: %.3f, AVG High: %.3f (%.3f), AVG Low: %.3f (%.3f)' % (
+                    #    Epoch, diff, High, hstd, Low, lstd))
+                    print(save_data)
+                    sdt.save_dic_csv(save_data, f"{output_key}_{FLAGS.RunInfo.replace('/', '')}.csv", index_name='ID')
 
                     # Now save the vizualizations
                     # sdl.save_gif_volume(np.asarray(display), ('testing/' + FLAGS.RunInfo + '/E_%s_Viz.gif' % Epoch), scale=0.5)
@@ -339,10 +302,19 @@ def inference():
                     mon_sess.close()
             break
 
+home_dir = '/media/bankai20/6ac427e2-ffaf-4f1d-a0c8-c963616d414f/Datasets/SPH2_mini/'
+output_key = 'SPH2_mini'
+Path(f"data/{output_key}/").mkdir(parents=True, exist_ok=True)
+tf.app.flags.DEFINE_string('data_dir', f"data/{output_key}/", """Path to the data directory.""")
 
-def main(argv=None):  # pylint: disable=unused-argument
-    time.sleep(FLAGS.sleep)
-    inference()
+record_num = pre_process(home_dir, output_key)
 
-if __name__ == '__main__':
-    tf.app.run()
+#TODO: figure out epoch_size and batch_size intelligently
+tf.app.flags.DEFINE_integer('epoch_size', record_num, """SPH2 - 131""")
+tf.app.flags.DEFINE_integer('batch_size', record_num, """Number of images to process in a batch.""")
+tf.app.flags.DEFINE_string('train_dir', 'training/', """Directory to write event logs and save checkpoint files""")
+
+tf.app.flags.DEFINE_string('RunInfo', 'Combined2/', """Unique file name for this training run""")
+inference(output_key)
+FLAGS['RunInfo'].value = 'UNet_Fixed2/'
+inference(output_key)
