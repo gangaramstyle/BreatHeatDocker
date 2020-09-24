@@ -29,10 +29,13 @@ FLAGS = tf.app.flags.FLAGS
 # tf.app.flags.DEFINE_integer('batch_size', 330, """Number of images to process in a batch.""")
 # tf.app.flags.DEFINE_integer('epoch_size', 1053, """Chemoprevention - 131""")
 # tf.app.flags.DEFINE_integer('batch_size', 351, """Number of images to process in a batch.""")
+
+#TODO: figure out epoch_size and batch_size intelligently
 tf.app.flags.DEFINE_integer('epoch_size', 2032, """SPH2 - 131""")
 tf.app.flags.DEFINE_integer('batch_size', 254, """Number of images to process in a batch.""")
 
 # Testing parameters
+#TODO: change between the two network types
 tf.app.flags.DEFINE_string('RunInfo', 'Combined2/', """Unique file name for this training run""")
 tf.app.flags.DEFINE_integer('GPU', 0, """Which GPU to use""")
 tf.app.flags.DEFINE_integer('sleep', 1, """ Time to sleep before starting test""")
@@ -56,6 +59,7 @@ tf.app.flags.DEFINE_float('learning_rate', 1e-3, """Initial learning rate""")
 tf.app.flags.DEFINE_float('beta1', 0.9, """ The beta 1 value for the adam optimizer""")
 tf.app.flags.DEFINE_float('beta2', 0.999, """ The beta 1 value for the adam optimizer""")
 
+# convert the pre_process code to be dataset agnostic
 def pre_process_BRCA(box_dims=1024):
     """
     Loads the files to a protobuf
@@ -166,7 +170,7 @@ def inference():
 
 
     # Makes this the default graph where all ops will be added
-    # with tf.Graph().as_default(), tf.device('/cpu:0'):
+    with tf.Graph().as_default(), tf.device('/cpu:0'):
     with tf.Graph().as_default(), tf.device('/gpu:' + str(FLAGS.GPU)):
 
         # Define phase of training
@@ -180,6 +184,7 @@ def inference():
         data['data'] = tf.reshape(data['data'], [FLAGS.batch_size, FLAGS.network_dims, FLAGS.network_dims])
 
         #  Perform the forward pass:
+        # TODO: Double check w/ simi on the unet stuff
         logits, _ = network.forward_pass_unet(data['data'], phase_train=phase_train)
 
         # Retreive softmax_map
@@ -202,13 +207,8 @@ def inference():
 
         while True:
 
-            # Allow memory placement growth
             config = tf.ConfigProto(log_device_placement=False, allow_soft_placement=True)
-            config.gpu_options.allow_growth = True
             with tf.Session(config=config) as mon_sess:
-
-                # Print run info
-                print("*** Validation Run %s on GPU %s ****" % (FLAGS.RunInfo, FLAGS.GPU))
 
                 # Retreive the checkpoint
                 ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir + FLAGS.RunInfo)
@@ -232,6 +232,7 @@ def inference():
                 # Initialize some variables
                 step = 0
                 max_steps = int(FLAGS.epoch_size / FLAGS.batch_size)
+                #TODO: Make sure the flags are correct
                 sdt = SDT(True, False)
 
                 # Dictionary of arrays merging function
@@ -274,7 +275,7 @@ def inference():
                     save_data, high_scores, low_scores, display = {}, [], [], []
                     high_std, low_std = [], []
                     for z in range(FLAGS.epoch_size):
-
+                        # TODO: Adjust the appropriate keys
                         # Generate the dictionary
                         save_data[z] = {
                             'Accno': _data['accno'][z].decode('utf-8'),

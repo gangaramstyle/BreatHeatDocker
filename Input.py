@@ -940,7 +940,7 @@ def save_all():
     print ('Saving %s examples into 4 batches' %len(data))
     sdl.save_segregated_tfrecords(4, data, 'patient', 'data/PREV')
 
-
+# TODO: Change this to match new keys
 # Load the protobuf
 def load_protobuf(training=True):
     """
@@ -1008,7 +1008,7 @@ def load_protobuf(training=True):
     # Return data as a dictionary
     return iterator
 
-
+# TODO: Change this to match new keys
 class DataPreprocessor(object):
 
     # Applies transformations to dataset
