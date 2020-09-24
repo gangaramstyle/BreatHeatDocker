@@ -1,3 +1,4 @@
+######DOCKER VERSION#######
 import os
 import time, datetime
 

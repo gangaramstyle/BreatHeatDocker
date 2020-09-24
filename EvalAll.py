@@ -1,3 +1,4 @@
+######DOCKER VERSION#######
 import time
 
 import HeatMatrix as network

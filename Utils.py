@@ -1,3 +1,4 @@
+######DOCKER VERSION#######
 """
 Utilities, like loading our other test sets
 """
