@@ -2,7 +2,7 @@
 import os
 import time, datetime
 
-import HeatMatrix as network
+from . import HeatMatrix as network
 import numpy as np
 import tensorflow as tf
 

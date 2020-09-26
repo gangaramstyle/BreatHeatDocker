@@ -12,7 +12,7 @@ from __future__ import print_function  # use the print function from python 3
 _author_ = 'simi'
 
 import tensorflow as tf
-import Input
+from . import Input
 import SODKit.SODNetwork as SDN
 
 # Define the FLAGS class to hold our immutable global variables
