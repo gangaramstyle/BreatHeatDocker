@@ -2,7 +2,7 @@
 import os
 import time
 
-import HeatMatrix as network
+import .HeatMatrix as network
 import tensorflow as tf
 import SODKit.SODTester as SDT
 import SODKit.SODLoader as SDL
