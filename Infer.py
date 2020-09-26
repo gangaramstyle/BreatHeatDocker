@@ -302,10 +302,10 @@ def inference(output_key):
                     mon_sess.close()
             break
 
-home_dir = '/media/bankai20/6ac427e2-ffaf-4f1d-a0c8-c963616d414f/Datasets/SPH2_mini/'
-output_key = 'SPH2_mini'
-Path(f"data/{output_key}/").mkdir(parents=True, exist_ok=True)
-tf.app.flags.DEFINE_string('data_dir', f"data/{output_key}/", """Path to the data directory.""")
+home_dir = '/app/data/raw'
+output_key = 'pprocessed'
+Path(f"/app/data/{output_key}/").mkdir(parents=True, exist_ok=True)
+tf.app.flags.DEFINE_string('data_dir', f"/app/data/{output_key}/", """Path to the data directory.""")
 
 record_num = pre_process(home_dir, output_key)
 
