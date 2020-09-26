@@ -49,7 +49,10 @@ def pre_process(f_dir, output_key):
     box_dims=1024
 
     # Load the filenames
+    print(f_dir)
     filenames = sdl.retreive_filelist('dcm', True, f_dir)
+    print(filenames)
+    print(os.listdir('/app/data/raw'))
 
     # Global variables
     record_index, file_index = 0, 0
