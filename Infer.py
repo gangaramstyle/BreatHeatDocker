@@ -302,19 +302,20 @@ def inference(output_key):
                     mon_sess.close()
             break
 
-home_dir = '/app/data/raw'
-output_key = 'pprocessed'
-Path(f"/app/data/{output_key}/").mkdir(parents=True, exist_ok=True)
-tf.app.flags.DEFINE_string('data_dir', f"/app/data/{output_key}/", """Path to the data directory.""")
+    def run_pipeline():
+        home_dir = '/app/data/raw'
+        output_key = 'pprocessed'
+        Path(f"/app/data/{output_key}/").mkdir(parents=True, exist_ok=True)
+        tf.app.flags.DEFINE_string('data_dir', f"/app/data/{output_key}/", """Path to the data directory.""")
 
-record_num = pre_process(home_dir, output_key)
+        record_num = pre_process(home_dir, output_key)
 
-#TODO: figure out epoch_size and batch_size intelligently
-tf.app.flags.DEFINE_integer('epoch_size', record_num, """SPH2 - 131""")
-tf.app.flags.DEFINE_integer('batch_size', record_num, """Number of images to process in a batch.""")
-tf.app.flags.DEFINE_string('train_dir', 'training/', """Directory to write event logs and save checkpoint files""")
+        #TODO: figure out epoch_size and batch_size intelligently
+        tf.app.flags.DEFINE_integer('epoch_size', record_num, """SPH2 - 131""")
+        tf.app.flags.DEFINE_integer('batch_size', record_num, """Number of images to process in a batch.""")
+        tf.app.flags.DEFINE_string('train_dir', 'training/', """Directory to write event logs and save checkpoint files""")
 
-tf.app.flags.DEFINE_string('RunInfo', 'Combined2/', """Unique file name for this training run""")
-inference(output_key)
-FLAGS['RunInfo'].value = 'UNet_Fixed2/'
-inference(output_key)
+        tf.app.flags.DEFINE_string('RunInfo', 'Combined2/', """Unique file name for this training run""")
+        inference(output_key)
+        FLAGS['RunInfo'].value = 'UNet_Fixed2/'
+        inference(output_key)
