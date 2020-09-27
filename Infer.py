@@ -49,10 +49,7 @@ def pre_process(f_dir, output_key):
     box_dims=1024
 
     # Load the filenames
-    print(f_dir)
     filenames = sdl.retreive_filelist('dcm', True, f_dir)
-    print(filenames)
-    print(os.listdir('/app/data/raw'))
 
     # Global variables
     record_index, file_index = 0, 0
@@ -312,6 +309,9 @@ def run_pipeline():
     tf.app.flags.DEFINE_string('data_dir', f"/app/data/{output_key}/", """Path to the data directory.""")
 
     record_num = pre_process(home_dir, output_key)
+    print(f"/app/data/{output_key}/{output_key}")
+    print(os.listdir(f"/app/data/{output_key}/{output_key}"))
+    input("preprocessing complete...")
 
     #TODO: figure out epoch_size and batch_size intelligently
     tf.app.flags.DEFINE_integer('epoch_size', record_num, """SPH2 - 131""")
