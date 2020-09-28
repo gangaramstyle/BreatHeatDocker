@@ -310,7 +310,7 @@ def run_pipeline():
 
     record_num = pre_process(home_dir, output_key)
     print(f"/app/data/{output_key}/{output_key}")
-    print(os.listdir(f"/app/data/{output_key}/{output_key}"))
+    print(os.listdir(f"/app/data/{output_key}/"))
     input("preprocessing complete...")
 
     #TODO: figure out epoch_size and batch_size intelligently
