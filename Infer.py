@@ -252,6 +252,7 @@ def inference(output_key):
                         # Generate the dictionary
                         save_data[z] = {
                             'Accno': _data['accno'][z].decode('utf-8'),
+                            'File': _data['file'][z].decode('utf-8'),
                             'Image_Info': _data['view'][z].decode('utf-8'),
                             'Cancer Score': ma.masked_array(heatmap_high[z].flatten(), mask=~mask[z].flatten()).mean(),
                             'Benign Score': ma.masked_array(heatmap_low[z].flatten(), mask=~mask[z].flatten()).mean(),
