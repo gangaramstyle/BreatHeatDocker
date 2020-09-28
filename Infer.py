@@ -144,26 +144,20 @@ def inference(output_key):
 
     # Makes this the default graph where all ops will be added
     with tf.Graph().as_default(), tf.device('/cpu:0'):
-        input("2")
 
         # Define phase of training
         phase_train = tf.placeholder(tf.bool)
-        input("3")
 
         # Load the images and labels.
         iterator = network.inputs(training=False, skip=True)
-        input("4")
         data = iterator.get_next()
-        input("5")
 
         # Define input shape
         data['data'] = tf.reshape(data['data'], [FLAGS.batch_size, FLAGS.network_dims, FLAGS.network_dims])
-        input("6")
 
         #  Perform the forward pass:
         # TODO: Double check w/ simi on the unet stuff
         logits, _ = network.forward_pass_unet(data['data'], phase_train=phase_train)
-        input("7")
 
         # Retreive softmax_map
         softmax_map = tf.nn.softmax(logits)
@@ -296,7 +290,6 @@ def inference(output_key):
                     #diff = High - Low
                     #print('Epoch: %s, Diff: %.3f, AVG High: %.3f (%.3f), AVG Low: %.3f (%.3f)' % (
                     #    Epoch, diff, High, hstd, Low, lstd))
-                    print(save_data)
                     sdt.save_dic_csv(save_data, f"{output_key}_{FLAGS.RunInfo.replace('/', '')}.csv", index_name='ID')
 
                     # Now save the vizualizations
@@ -307,6 +300,7 @@ def inference(output_key):
 
                     # Shut down the session
                     mon_sess.close()
+                    return save_data
             break
 
 def run_pipeline():
@@ -316,9 +310,6 @@ def run_pipeline():
     tf.app.flags.DEFINE_string('data_dir', f"/app/data/{output_key}/", """Path to the data directory.""")
 
     record_num = pre_process(home_dir, output_key)
-    print(f"/app/data/{output_key}/{output_key}")
-    print(os.listdir(f"/app/data/{output_key}/"))
-    input("preprocessing complete...")
 
     #TODO: figure out epoch_size and batch_size intelligently
     tf.app.flags.DEFINE_integer('epoch_size', record_num, """SPH2 - 131""")
@@ -326,6 +317,7 @@ def run_pipeline():
     tf.app.flags.DEFINE_string('train_dir', 'training/', """Directory to write event logs and save checkpoint files""")
 
     tf.app.flags.DEFINE_string('RunInfo', 'Combined2/', """Unique file name for this training run""")
-    inference(output_key)
+    combined2output = inference(output_key)
     FLAGS['RunInfo'].value = 'UNet_Fixed2/'
-    inference(output_key)
+    unetfixed2output = inference(output_key)
+    return combined2output, unetfixed2output
