@@ -68,7 +68,7 @@ def pre_process(f_dir, output_key):
     # Failure trackers
     f_dicom, f_cc, f_laterality, f_mask_generate, f_mask_apply = 0, 0, 0, 0, 0
     data = {}
-
+    input(filenames)
     for file_index, file in enumerate(filenames):
 
         # Load the Dicom
@@ -137,6 +137,7 @@ def pre_process(f_dir, output_key):
         # Save the data
         data[record_index] = {'data': image.astype(np.float16), 'label_data': labels, 'file': file, 'shapex': shape[0], 'shapy': shape[1],
                        'view': view, 'accno': accno}
+        input(data)
 
         # Increment counters
         record_index += 1
@@ -311,7 +312,7 @@ def inference(output_key):
 
                     # Shut down the session
                     mon_sess.close()
-                    print(save_data)
+                    input(save_data)
                     return save_data
             break
 
