@@ -19,6 +19,17 @@ _author_ = 'Simi'
 # Define the FLAGS class to hold our immutable global variables
 FLAGS = tf.app.flags.FLAGS
 
+home_dir = '/app/data/raw'
+output_key = 'pprocessed'
+Path(f"/app/data/{output_key}/").mkdir(parents=True, exist_ok=True)
+tf.app.flags.DEFINE_string('data_dir', f"/app/data/{output_key}/", """Path to the data directory.""")
+
+tf.app.flags.DEFINE_integer('epoch_size', 10, """SPH2 - 131""")
+tf.app.flags.DEFINE_integer('batch_size', 10, """Number of images to process in a batch.""")
+tf.app.flags.DEFINE_string('train_dir', 'training/', """Directory to write event logs and save checkpoint files""")
+
+tf.app.flags.DEFINE_string('RunInfo', '', """Unique file name for this training run""")
+
 # Define some of the immutable variables
 tf.app.flags.DEFINE_integer('num_classes', 2, """ Number of classes""")
 tf.app.flags.DEFINE_integer('box_dims', 1024, """dimensions of the input pictures""")
@@ -35,6 +46,8 @@ tf.app.flags.DEFINE_integer('loss_class', 1, """For classes this and above, appl
 tf.app.flags.DEFINE_float('learning_rate', 1e-3, """Initial learning rate""")
 tf.app.flags.DEFINE_float('beta1', 0.9, """ The beta 1 value for the adam optimizer""")
 tf.app.flags.DEFINE_float('beta2', 0.999, """ The beta 1 value for the adam optimizer""")
+
+
 
 # convert the pre_process code to be dataset agnostic
 def pre_process(f_dir, output_key):
@@ -303,19 +316,13 @@ def inference(output_key):
             break
 
 def run_pipeline():
-    home_dir = '/app/data/raw'
-    output_key = 'pprocessed'
-    Path(f"/app/data/{output_key}/").mkdir(parents=True, exist_ok=True)
-    tf.app.flags.DEFINE_string('data_dir', f"/app/data/{output_key}/", """Path to the data directory.""")
 
     record_num = pre_process(home_dir, output_key)
-
+    FLAGS['epoch_size'].value = record_num
+    FLAGS['batch_size'].value = record_num
     #TODO: figure out epoch_size and batch_size intelligently
-    tf.app.flags.DEFINE_integer('epoch_size', record_num, """SPH2 - 131""")
-    tf.app.flags.DEFINE_integer('batch_size', record_num, """Number of images to process in a batch.""")
-    tf.app.flags.DEFINE_string('train_dir', 'training/', """Directory to write event logs and save checkpoint files""")
 
-    tf.app.flags.DEFINE_string('RunInfo', 'Combined2/', """Unique file name for this training run""")
+    FLAGS['RunInfo'].value = 'Combined2/'
     combined2output = inference(output_key)
     FLAGS['RunInfo'].value = 'UNet_Fixed2/'
     unetfixed2output = inference(output_key)
