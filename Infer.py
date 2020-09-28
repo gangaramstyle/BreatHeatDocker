@@ -19,7 +19,7 @@ _author_ = 'Simi'
 # Define the FLAGS class to hold our immutable global variables
 FLAGS = tf.app.flags.FLAGS
 
-home_dir = '/app/data/raw'
+home_dir = '/app/data/raw/'
 output_key = 'pprocessed'
 Path(f"/app/data/{output_key}/").mkdir(parents=True, exist_ok=True)
 tf.app.flags.DEFINE_string('data_dir', f"/app/data/{output_key}/", """Path to the data directory.""")
@@ -62,6 +62,7 @@ def pre_process(f_dir, output_key):
     box_dims=1024
 
     # Load the filenames
+    input(glob.glob(f_dir + '*'))
     filenames = sdl.retreive_filelist('*', True, f_dir)
 
     # Global variables
