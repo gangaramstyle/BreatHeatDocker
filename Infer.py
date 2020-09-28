@@ -56,13 +56,12 @@ def pre_process(f_dir, output_key):
     :param box_dims: dimensions of the saved images
     :return:
     """
-
+    input(glob.glob(f_dir + '*'))
     sdl = SDL(data_root=f_dir)
     sdd = SDD()
     box_dims=1024
 
     # Load the filenames
-    input(glob.glob(f_dir + '*'))
     filenames = sdl.retreive_filelist('*', True, f_dir)
 
     # Global variables
