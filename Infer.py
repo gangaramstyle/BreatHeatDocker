@@ -49,9 +49,7 @@ def pre_process(f_dir, output_key):
     box_dims=1024
 
     # Load the filenames
-    filenames = sdl.retreive_filelist('dcm', True, f_dir)
-    input(str(os.listdir(f_dir)))
-    input(str(filenames))
+    filenames = sdl.retreive_filelist('*', True, f_dir)
 
     # Global variables
     record_index, file_index = 0, 0
@@ -186,8 +184,6 @@ def inference(output_key):
 
                 # Retreive the checkpoint
                 ckpt = tf.train.get_checkpoint_state("/app/BreatHeatDocker/" + FLAGS.train_dir + FLAGS.RunInfo)
-                print("/app/BreatHeatDocker/" + FLAGS.train_dir + FLAGS.RunInfo)
-                input(str(os.listdir("/app/BreatHeatDocker/" + FLAGS.train_dir + FLAGS.RunInfo)))
 
                 # Initialize the variables
                 mon_sess.run([var_init, iterator.initializer])
