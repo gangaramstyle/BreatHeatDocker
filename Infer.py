@@ -141,50 +141,64 @@ def pre_process(f_dir, output_key):
 # Define a custom training class
 def inference(output_key):
     sdd = SDD()
-
+    input("1")
 
     # Makes this the default graph where all ops will be added
     with tf.Graph().as_default(), tf.device('/cpu:0'):
+        input("2")
 
         # Define phase of training
         phase_train = tf.placeholder(tf.bool)
+        input("3")
 
         # Load the images and labels.
         iterator = network.inputs(training=False, skip=True)
+        input("4")
         data = iterator.get_next()
+        input("5")
 
         # Define input shape
         data['data'] = tf.reshape(data['data'], [FLAGS.batch_size, FLAGS.network_dims, FLAGS.network_dims])
+        input("6")
 
         #  Perform the forward pass:
         # TODO: Double check w/ simi on the unet stuff
         logits, _ = network.forward_pass_unet(data['data'], phase_train=phase_train)
+        input("7")
 
         # Retreive softmax_map
         softmax_map = tf.nn.softmax(logits)
+        input("8")
 
         # Initialize variables operation
         var_init = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
+        input("9")
 
         # Restore moving average of the variables
         var_ema = tf.train.ExponentialMovingAverage(FLAGS.moving_avg_decay)
+        input("10")
 
         # Define variables to restore
         var_restore = var_ema.variables_to_restore()
+        input("11")
 
         # Initialize the saver
         saver = tf.train.Saver(var_restore, max_to_keep=3)
+        input("12")
 
         # Trackers for best performers
         best_MAE, best_epoch = 0.25, 0
+        input("13")
 
         while True:
 
             config = tf.ConfigProto(log_device_placement=False, allow_soft_placement=True)
             with tf.Session(config=config) as mon_sess:
+                input("14")
 
                 # Retreive the checkpoint
                 ckpt = tf.train.get_checkpoint_state(FLAGS.train_dir + FLAGS.RunInfo)
+                input(FLAGS.train_dir + FLAGS.RunInfo)
 
                 # Initialize the variables
                 mon_sess.run([var_init, iterator.initializer])
