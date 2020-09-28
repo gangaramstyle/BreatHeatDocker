@@ -50,6 +50,8 @@ def pre_process(f_dir, output_key):
 
     # Load the filenames
     filenames = sdl.retreive_filelist('dcm', True, f_dir)
+    input(str(os.listdir(f_dir)))
+    input(str(filenames))
 
     # Global variables
     record_index, file_index = 0, 0
