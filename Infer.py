@@ -56,7 +56,6 @@ def pre_process(f_dir, output_key):
     :param box_dims: dimensions of the saved images
     :return:
     """
-    input(glob.glob(f_dir + '*'))
     sdl = SDL(data_root=f_dir)
     sdd = SDD()
     box_dims=1024
@@ -312,6 +311,7 @@ def inference(output_key):
 
                     # Shut down the session
                     mon_sess.close()
+                    print(save_data)
                     return save_data
             break
 
