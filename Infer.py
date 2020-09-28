@@ -68,7 +68,6 @@ def pre_process(f_dir, output_key):
     # Failure trackers
     f_dicom, f_cc, f_laterality, f_mask_generate, f_mask_apply = 0, 0, 0, 0, 0
     data = {}
-    input(filenames)
     for file_index, file in enumerate(filenames):
 
         # Load the Dicom
@@ -144,7 +143,6 @@ def pre_process(f_dir, output_key):
 
     # Done with all patients
     #print('Made %s BRCA boxes from %s patients' % (index, pt,), counter)
-    input(data)
     # Save the data.
     sdl.save_dict_filetypes(data[0])
     sdl.save_tfrecords(data, 1, file_root=f"data/{output_key}/{output_key}")
