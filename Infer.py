@@ -137,7 +137,6 @@ def pre_process(f_dir, output_key):
         # Save the data
         data[record_index] = {'data': image.astype(np.float16), 'label_data': labels, 'file': file, 'shapex': shape[0], 'shapy': shape[1],
                        'view': view, 'accno': accno}
-        input(data)
 
         # Increment counters
         record_index += 1
@@ -145,7 +144,7 @@ def pre_process(f_dir, output_key):
 
     # Done with all patients
     #print('Made %s BRCA boxes from %s patients' % (index, pt,), counter)
-
+    input(data)
     # Save the data.
     sdl.save_dict_filetypes(data[0])
     sdl.save_tfrecords(data, 1, file_root=f"data/{output_key}/{output_key}")
