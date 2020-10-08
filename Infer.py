@@ -95,7 +95,6 @@ def pre_process(f_dir, output_key):
             except:
                 f_laterality += 1
                 print(header)
-                input('...')
                 continue
 
         view = laterality + '_' + header['tags'].ViewPosition
@@ -309,7 +308,6 @@ def inference(output_key):
 
                     # Shut down the session
                     mon_sess.close()
-                    input(save_data)
                     return save_data
             break
 
